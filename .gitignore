@@ -1,0 +1,4 @@
+iac/environments/dev/.terraform.lock.hcl
+iac/environments/dev/.terraform/modules/modules.json
+iac/environments/dev/.terraform/providers/registry.terraform.io/hashicorp/azurerm/4.81.0/windows_amd64/LICENSE.txt
+iac/environments/dev/.terraform/providers/registry.terraform.io/hashicorp/azurerm/4.81.0/windows_amd64/terraform-provider-azurerm_v4.81.0_x5.exe
