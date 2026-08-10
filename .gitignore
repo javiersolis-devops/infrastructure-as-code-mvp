@@ -1,4 +1,22 @@
-iac/environments/dev/.terraform.lock.hcl
-iac/environments/dev/.terraform/modules/modules.json
-iac/environments/dev/.terraform/providers/registry.terraform.io/hashicorp/azurerm/4.81.0/windows_amd64/LICENSE.txt
-iac/environments/dev/.terraform/providers/registry.terraform.io/hashicorp/azurerm/4.81.0/windows_amd64/terraform-provider-azurerm_v4.81.0_x5.exe
+# Terraform
+**/.terraform/
+**/*.tfstate
+**/*.tfstate.*
+**/crash.log
+**/crash.*.log
+**/*.tfvars
+**/*.tfvars.json
+**/override.tf
+**/override.tf.json
+**/*_override.tf
+**/*_override.tf.json
+**/.terraformrc
+**/terraform.rc
+
+# Local environment and editor files
+.env
+.env.*
+.vscode/
+.idea/
+.DS_Store
+Thumbs.db
