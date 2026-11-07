@@ -29,6 +29,12 @@ resource "azurerm_kubernetes_cluster" "main" {
     network_plugin = "azure"
   }
 
+  # Obligatorio desde azurerm 4.x: sin aprovisionamiento automático de nodos,
+  # el clúster usa solo los node pools declarados.
+  node_provisioning_profile {
+    mode = "Manual"
+  }
+
   dynamic "oms_agent" {
     for_each = var.log_analytics_workspace_id != null ? [var.log_analytics_workspace_id] : []
     content {
