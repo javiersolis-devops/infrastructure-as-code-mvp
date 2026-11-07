@@ -16,7 +16,7 @@ Este proyecto organiza la infraestructura como código de forma modular sobre el
 Valor principal:
 
 - una sola raíz de Terraform para todos los entornos
-- módulos pequeños con contratos explícitos (variables y outputs)
+- módulos pequeños con contratos explícitos (variables, outputs y versiones de provider)
 - configuración por entorno aislada en `environments/<entorno>/`
 - estado remoto por entorno en Azure Storage
 - facilita extender el proyecto con nuevos módulos o entornos
@@ -51,11 +51,18 @@ terraform/
 
 Responsabilidades:
 
-- `modules/*`: recursos de Azure agrupados por capacidad; solo exponen variables y outputs. `kubernetes` depende de `networking` (subred) y de `observability` (workspace); nunca al revés.
+- `modules/*`: recursos de Azure agrupados por capacidad; exponen variables, outputs y un `versions.tf` con el provider requerido. `kubernetes` depende de `networking` (subred) y de `observability` (workspace); nunca al revés.
 - `main.tf`: convenciones de nombres y etiquetas, y cableado entre módulos.
 - `versions.tf`: bloque `terraform` con `required_version`, `required_providers` y `backend "azurerm" {}`.
 - `environments/<entorno>/terraform.tfvars`: valores del entorno. Contienen secretos, por lo que `*.tfvars` está excluido del repositorio por `.gitignore`; cada persona mantiene sus copias locales.
 - `environments/<entorno>/backend.hcl`: configuración del estado remoto; ajustar los valores marcados con `AJUSTAR` a la suscripción destino.
+
+### Versiones de provider
+
+El proyecto usa `hashicorp/azurerm` con la constraint `~> 4.0`. Cada módulo declara su propio `versions.tf` con la misma constraint, lo que evita que un IDE o una ejecución aislada descarguen una versión mayor del provider y reporten errores de esquema.
+
+- Terraform: `>= 1.6.0`
+- azurerm: `~> 4.0`
 
 ## Flujo
 
@@ -92,6 +99,7 @@ Para trabajar con este proyecto, conviene respetar estas reglas:
 - mantener el grafo de dependencias sin ciclos: `observability` y `networking` no consumen salidas de `kubernetes`
 - no subir secretos al repositorio: van en `environments/*/terraform.tfvars` (ignorado por git) o en un almacén de secretos
 - mantener un `terraform.tfvars` y un `backend.hcl` por entorno
+- mantener un `versions.tf` por módulo, alineado con el `versions.tf` de la raíz
 - documentar outputs, variables y dependencias relevantes de cada módulo
 
 Entrada esperada:
@@ -114,8 +122,9 @@ Si vas a agregar algo nuevo al proyecto:
 2. Expón solo las variables necesarias; usa tipos específicos y validaciones.
 3. Conecta el módulo desde `main.tf`; no crees dependencias entre módulos hermanos.
 4. Añade los valores nuevos a los `terraform.tfvars` de los entornos afectados.
-5. Agrega documentación local en el módulo si el cambio introduce nuevas reglas.
-6. Revisa el impacto sobre referencias, outputs y validaciones.
+5. Crea un `versions.tf` dentro del módulo si no existe, con la misma versión de provider que la raíz.
+6. Agrega documentación local en el módulo si el cambio introduce nuevas reglas.
+7. Revisa el impacto sobre referencias, outputs y validaciones.
 
 Cuándo crear un nuevo módulo:
 
@@ -140,6 +149,7 @@ Puntos típicos a tocar:
 - `terraform/variables.tf` si falta una variable o una validación
 - `terraform/environments/<entorno>/` si el problema depende del entorno
 - `terraform/modules/<módulo>` si el problema es de un recurso concreto
+- `terraform/modules/<módulo>/versions.tf` si el IDE o una validación aislada del módulo reportan un esquema distinto al de la raíz
 
 Si el problema está en un comportamiento específico, modifica primero el punto más cercano a la causa:
 
@@ -147,3 +157,4 @@ Si el problema está en un comportamiento específico, modifica primero el punto
 - valor incorrecto -> variable en `environments/<entorno>/terraform.tfvars`
 - error de estado -> `backend.hcl` del entorno y autenticación
 - recurso mal creado -> módulo correspondiente
+- error de esquema solo en el IDE o en un módulo aislado -> `versions.tf` del módulo y `terraform init` en ese directorio
